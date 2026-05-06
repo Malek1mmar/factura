@@ -1,4 +1,4 @@
-package com.example.fatoura.domain;
+package com.example.fatoura.infrastructure.persistence.entity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -6,24 +6,30 @@ import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.util.UUID;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
 @Table(name = "membership")
 @Getter
 @Setter
-public class Membership {
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class MembershipEntity {
 
   @Id
   @GeneratedValue
   private UUID id;
 
   @ManyToOne
-  private User user;
+  private UserEntity user;
 
   @ManyToOne
-  private Organization organization;
+  private OrganizationEntity organization;
 
   private String role;
 }
