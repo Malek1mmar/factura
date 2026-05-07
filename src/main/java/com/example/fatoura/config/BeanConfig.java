@@ -1,8 +1,11 @@
 package com.example.fatoura.config;
 
+import com.example.fatoura.core.application.port.outbound.FileStoragePort;
+import com.example.fatoura.core.application.port.outbound.InvoiceRepository;
 import com.example.fatoura.core.application.port.outbound.MembershipRepository;
 import com.example.fatoura.core.application.port.outbound.OrganizationRepository;
 import com.example.fatoura.core.application.port.outbound.UserRepository;
+import com.example.fatoura.core.application.service.InvoiceService;
 import com.example.fatoura.core.application.service.OrganizationService;
 import com.example.fatoura.core.application.service.UserService;
 import org.springframework.context.annotation.Bean;
@@ -22,5 +25,20 @@ public class BeanConfig {
   @Bean
   public UserService userService(UserRepository userRepository) {
     return new UserService(userRepository);
+  }
+
+  @Bean
+  public InvoiceService invoiceService(
+      InvoiceRepository invoiceRepository,
+      OrganizationRepository organizationRepository,
+      MembershipRepository membershipRepository,
+      FileStoragePort fileStoragePort
+  ) {
+    return new InvoiceService(
+        invoiceRepository,
+        organizationRepository,
+        membershipRepository,
+        fileStoragePort
+    );
   }
 }

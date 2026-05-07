@@ -2,14 +2,35 @@
 
 ## 🚀 Overview
 
-This project is a backend service for managing invoices for small businesses (cafés, restaurants, shops) in Tunisia.
+This project is a backend service for managing invoices for small businesses (cafés, restaurants, shops) in Tunisia. It is built using **Hexagonal Architecture (Ports & Adapters)** to ensure a clean separation between business logic and technical concerns.
 
-It is built with:
+Built with:
 
-* **Spring Boot** (REST API)
+* **Spring Boot 3** (REST API & Resource Server)
 * **Keycloak** (Authentication & Identity)
 * **PostgreSQL** (Database)
-* **Hibernate / JPA** (ORM)
+* **Hibernate / JPA** (Persistence)
+* **Lombok** (Boilerplate reduction)
+
+---
+
+# 🏗️ Hexagonal Architecture
+
+The project follows a strict Hexagonal (Clean) Architecture:
+
+### 📦 Core Layer (`com.example.fatoura.core`)
+Independent of any framework or infrastructure.
+*   **Domain**: Business entities (`Invoice`, `User`, `Organization`) and logic.
+*   **Application**:
+    *   **Inbound Ports**: Interfaces defining use cases (`UploadInvoiceUseCase`).
+    *   **Outbound Ports**: Interfaces for external dependencies (`InvoiceRepository`, `FileStoragePort`).
+    *   **Services**: Business logic implementations that coordinate between ports.
+
+### 🔌 Infrastructure Layer (`com.example.fatoura.infrastructure`)
+Contains technical implementations.
+*   **Web**: REST Controllers, Security configuration, and Web-to-Domain mappers.
+*   **Persistence**: JPA Repositories, Entities, and Persistence Adapters (mapping between DB and Domain).
+*   **Storage**: Adapters for file storage (local file system, cloud storage).
 
 ---
 
@@ -23,330 +44,82 @@ We follow a **modern stateless security architecture**:
 Client → Keycloak → JWT → Spring Boot API
 ```
 
----
-
-## 🧠 Responsibilities
-
 ### 🔑 Keycloak
-
-Handles:
-
-* User authentication
-* Login / password management
-* Token (JWT) generation
-
-👉 Keycloak answers:
-
-```
-WHO are you?
-```
-
----
+Handles Identity management (Who are you?).
 
 ### ⚙️ Spring Boot (Resource Server)
-
-Handles:
-
-* JWT validation
-* Securing endpoints
-* Extracting user information
-
-👉 Spring answers:
-
-```
-WHAT are you allowed to do?
-```
-
----
-
-## 🔐 JWT Flow
-
-1. User authenticates via Keycloak
-2. Keycloak returns an `access_token` (JWT)
-3. Client calls API with:
-
-```
-Authorization: Bearer <token>
-```
-
-4. Spring Boot validates token using:
-
-```yaml
-spring:
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: http://localhost:8081/realms/factura-app
-```
-
----
-
-## ⚠️ Important Notes
-
-* ❌ No `client_secret` is used in backend (resource server mode)
-* ✔ Backend only validates JWT
-* ✔ Authentication is fully externalized
-
----
-
-# 👤 User Management
-
-## 🎯 Problem
-
-Keycloak manages authentication, but **does not store business data**.
-
-👉 Therefore, we implement **user synchronization**.
-
----
-
-## 🔄 User Sync Strategy
-
-When a request hits the API:
-
-```java
-if (user not found in DB) {
-    create user from JWT
-}
-```
-
----
-
-## 🧾 User Entity
-
-```java
-@Entity
-@Table(name = "app_user")
-public class User {
-
-    @Id
-    @GeneratedValue
-    private UUID id;
-
-    @Column(unique = true, nullable = false)
-    private String keycloakId;
-
-    private String email;
-
-    private String username;
-}
-```
-
----
-
-## 🔑 JWT Mapping
-
-| JWT Claim            | Usage                          |
-| -------------------- | ------------------------------ |
-| `sub`                | keycloakId (unique identifier) |
-| `preferred_username` | username                       |
-| `email`              | email                          |
-
----
-
-## 🧠 Design Decision
-
-```
-Keycloak = Identity
-Database = Business representation
-```
+Handles Authorization (What are you allowed to do?) and JWT validation.
 
 ---
 
 # 🏢 Business Architecture (Multi-Tenant)
 
 ## 🎯 Goal
-
-Support multiple businesses:
-
-* Café A
-* Restaurant B
-* Shop C
-
-👉 Each with isolated data.
-
----
+Support multiple businesses with isolated data.
 
 ## 🧱 Core Model
 
 ```
-User
-  ↓
-Membership
-  ↓
-Organization
+User ↔ Membership ↔ Organization ↔ Invoice
 ```
+
+### 👤 User
+Synchronized from Keycloak JWT on first request.
+
+### 🏢 Organization
+Represents a business entity.
+
+### 🔗 Membership
+Connects a User to an Organization with specific roles.
+
+### 🧾 Invoice
+Managed within the scope of an Organization.
 
 ---
 
-## 🏢 Organization
+# 🧾 Invoice Management
 
-Represents a business:
-
-```java
-@Entity
-public class Organization {
-
-    @Id
-    @GeneratedValue
-    private UUID id;
-
-    private String name;
-    private String address;
-}
-```
-
----
-
-## 🔗 Membership (Key Concept)
-
-Represents:
-
-```
-User ↔ Organization + Role
-```
-
-```java
-@Entity
-public class Membership {
-
-    @Id
-    @GeneratedValue
-    private UUID id;
-
-    @ManyToOne
-    private User user;
-
-    @ManyToOne
-    private Organization organization;
-
-    private String role; // ADMIN, EMPLOYEE
-}
-```
-
----
-
-## 🧠 Why Membership?
-
-Because:
-
-* A user can belong to multiple organizations
-* A user can have different roles per organization
-
----
-
-## 📦 Example
-
-```
-Ali → Café Roma → ADMIN
-Ali → Pizza House → EMPLOYEE
-```
+## 📤 Upload Flow
+1. **Controller**: Receives `MultipartFile` and `organizationId`.
+2. **Service**:
+    * Validates User membership in the Organization.
+    * Uses `FileStoragePort` to store the physical file.
+    * Uses `InvoiceRepository` to persist metadata.
+3. **Persistence**: `InvoicePersistenceAdapter` maps the domain model to `InvoiceEntity` for JPA storage.
 
 ---
 
 # 🗄️ Database Strategy
 
-## Development Mode
-
-```yaml
-spring:
-  jpa:
-    hibernate:
-      ddl-auto: update
-```
-
-👉 Auto-creates tables
-
----
-
-## Production Mode (later)
-
-* Use Flyway
-* `ddl-auto: validate`
-
----
-
-## ⚠️ Naming Convention
-
-Avoid reserved SQL keywords:
-
-❌ `user`
-✔ `app_user`
+* **Development**: `ddl-auto: update` for rapid iteration.
+* **Naming**: Uses `app_user` for users to avoid SQL keyword conflicts.
+* **Entities**: Isolated in `infrastructure.persistence.entity` to prevent leaking persistence details into the core domain.
 
 ---
 
 # 🧪 Available Endpoints
 
-## 🔓 Public
+### 🧾 Invoices
+*   `POST /api/invoices/upload` (Secure): Upload an invoice for a specific organization.
 
-```
-GET /public/hello
-```
+### 🏢 Organizations
+*   `POST /api/organizations` (Secure): Create a new organization.
+*   `GET /api/organizations` (Secure): List organizations for current user.
 
----
-
-## 🔐 Secure
-
-```
-GET /api/test/secure
-```
-
-Requires JWT
-
----
-
-## 👤 Current User
-
-```
-GET /api/me
-```
-
-Returns:
-
-```json
-{
-  "id": "...",
-  "keycloakId": "...",
-  "email": "...",
-  "username": "..."
-}
-```
-
----
-
-# 🧠 Key Concepts Recap
-
-```
-Authentication → Keycloak
-Authorization → Spring Security
-Business Data → PostgreSQL
-```
+### 👤 User
+*   `GET /api/me` (Secure): Current user profile.
 
 ---
 
 # 🚀 Next Steps
 
-* Add Organization management API
-* Add Membership roles & permissions
-* Implement invoice module:
-
-    * upload
-    * OCR
-    * classification
-
----
-
-# 💡 Final Thought
-
-This architecture is:
-
-* ✅ Scalable
-* ✅ Secure
-* ✅ SaaS-ready
-* ✅ Multi-tenant capable
+* Implement **OCR engine** for automatic data extraction from invoices.
+* Add **Invoice Search & Filtering**.
+* Implement **Role-based Access Control (RBAC)** via Membership roles.
+* Add **Export to PDF/Excel** features.
 
 ---
 
 # 👨‍💻 Author
 
-Backend built with a focus on clean architecture and production-ready patterns.
+Backend built with a focus on clean architecture, scalability, and production-ready patterns.
