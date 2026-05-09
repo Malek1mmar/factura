@@ -5,6 +5,9 @@ import com.example.fatoura.core.domain.model.Invoice;
 import com.example.fatoura.infrastructure.persistence.entity.InvoiceEntity;
 import com.example.fatoura.infrastructure.persistence.mapper.InvoicePersistenceMapper;
 import com.example.fatoura.infrastructure.persistence.repository.JpaInvoiceRepository;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -19,5 +22,12 @@ public class InvoicePersistenceAdapter implements InvoiceRepository {
     InvoiceEntity entity = InvoicePersistenceMapper.toEntity(invoice);
     InvoiceEntity savedEntity = jpaInvoiceRepository.save(entity);
     return InvoicePersistenceMapper.toDomain(savedEntity);
+  }
+
+  @Override
+  public List<Invoice> findByOrganizationId(UUID organizationId) {
+    return jpaInvoiceRepository.findByOrganizationId(organizationId).stream()
+        .map(InvoicePersistenceMapper::toDomain)
+        .collect(Collectors.toList());
   }
 }
