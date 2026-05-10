@@ -1,5 +1,6 @@
 package com.example.fatoura.core.application.service;
 
+import com.example.fatoura.core.application.port.inbound.GetInvoiceUseCase;
 import com.example.fatoura.core.application.port.inbound.GetInvoicesUseCase;
 import com.example.fatoura.core.application.port.inbound.UploadInvoiceUseCase;
 import com.example.fatoura.core.application.port.outbound.FileStoragePort;
@@ -18,7 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
 
 @RequiredArgsConstructor
-public class InvoiceService implements UploadInvoiceUseCase, GetInvoicesUseCase {
+public class InvoiceService implements UploadInvoiceUseCase, GetInvoicesUseCase, GetInvoiceUseCase {
 
   private final InvoiceRepository invoiceRepository;
   private final OrganizationRepository organizationRepository;
@@ -77,5 +78,20 @@ public class InvoiceService implements UploadInvoiceUseCase, GetInvoicesUseCase 
     }
 
     return invoiceRepository.findByOrganizationId(organizationId);
+  }
+
+  @Override
+  public Invoice getById(User user, UUID invoiceId) {
+    Invoice invoice = invoiceRepository.findById(invoiceId)
+        .orElseThrow(() -> new RuntimeException("Invoice not found"));
+
+    boolean hasAccess = membershipRepository
+        .existsByUserAndOrganization(user, invoice.getOrganization());
+
+    if (!hasAccess) {
+      throw new RuntimeException("Forbidden");
+    }
+
+    return invoice;
   }
 }

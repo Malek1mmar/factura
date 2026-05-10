@@ -1,5 +1,6 @@
 package com.example.fatoura.infrastructure.web.controller;
 
+import com.example.fatoura.core.application.port.inbound.GetInvoiceUseCase;
 import com.example.fatoura.core.application.port.inbound.GetInvoicesUseCase;
 import com.example.fatoura.core.application.port.inbound.UploadInvoiceUseCase;
 import com.example.fatoura.core.domain.model.Invoice;
@@ -12,6 +13,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -25,6 +27,7 @@ public class InvoiceController {
 
   private final UploadInvoiceUseCase uploadInvoiceUseCase;
   private final GetInvoicesUseCase getInvoicesUseCase;
+  private final GetInvoiceUseCase getInvoiceUseCase;
 
   @PostMapping(
       value = "/upload",
@@ -54,5 +57,15 @@ public class InvoiceController {
         .stream()
         .map(InvoiceWebMapper::toResponse)
         .toList();
+  }
+
+  @GetMapping("/{id}")
+  public InvoiceResponse getById(
+      User user,
+      @PathVariable UUID id
+  ) {
+    Invoice invoice = getInvoiceUseCase.getById(user, id);
+
+    return InvoiceWebMapper.toResponse(invoice);
   }
 }
