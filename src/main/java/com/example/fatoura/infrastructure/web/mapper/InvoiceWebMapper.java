@@ -14,6 +14,11 @@ public class InvoiceWebMapper {
         .fileSize(invoice.getFileSize())
         .status(invoice.getStatus())
         .uploadedAt(invoice.getUploadedAt())
+        .supplierName(invoice.getSupplierName())
+        .invoiceNumber(invoice.getInvoiceNumber())
+        .totalAmount(invoice.getTotalAmount())
+        .invoiceDate(invoice.getInvoiceDate())
+        .currency(invoice.getCurrency())
         .build();
   }
 }

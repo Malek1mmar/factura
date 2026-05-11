@@ -1,9 +1,7 @@
 package com.example.fatoura.core.domain.model;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.time.LocalDate;
-import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,16 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Invoice {
-  private UUID id;
-  private String filename;
-  private String storagePath;
-  private String mimeType;
-  private Long fileSize;
-  private InvoiceStatus status;
-  private Instant uploadedAt;
-  private Organization organization;
-  private User uploadedBy;
+public class ExtractedInvoiceData {
 
   private String supplierName;
   private String invoiceNumber;

@@ -17,6 +17,11 @@ public class InvoicePersistenceMapper {
         .uploadedAt(entity.getUploadedAt())
         .organization(OrganizationPersistenceMapper.toDomain(entity.getOrganization()))
         .uploadedBy(UserPersistenceMapper.toDomain(entity.getUploadedBy()))
+        .supplierName(entity.getSupplierName())
+        .invoiceNumber(entity.getInvoiceNumber())
+        .totalAmount(entity.getTotalAmount())
+        .invoiceDate(entity.getInvoiceDate())
+        .currency(entity.getCurrency())
         .build();
   }
 
@@ -32,6 +37,12 @@ public class InvoicePersistenceMapper {
         .uploadedAt(domain.getUploadedAt())
         .organization(OrganizationPersistenceMapper.toEntity(domain.getOrganization()))
         .uploadedBy(UserPersistenceMapper.toEntity(domain.getUploadedBy()))
+        .supplierName(domain.getSupplierName())
+        .invoiceNumber(domain.getInvoiceNumber())
+        .totalAmount(domain.getTotalAmount())
+        .invoiceDate(domain.getInvoiceDate())
+        .currency(domain.getCurrency())
         .build();
   }
+
 }

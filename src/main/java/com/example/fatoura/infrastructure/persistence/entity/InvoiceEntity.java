@@ -8,7 +8,9 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -47,4 +49,10 @@ public class InvoiceEntity {
 
   @ManyToOne(optional = false)
   private UserEntity uploadedBy;
+
+  private String supplierName;
+  private String invoiceNumber;
+  private BigDecimal totalAmount;
+  private LocalDate invoiceDate;
+  private String currency;
 }
