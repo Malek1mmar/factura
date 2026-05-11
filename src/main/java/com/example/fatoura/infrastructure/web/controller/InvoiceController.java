@@ -1,5 +1,6 @@
 package com.example.fatoura.infrastructure.web.controller;
 
+import com.example.fatoura.core.application.port.inbound.DeleteInvoiceUseCase;
 import com.example.fatoura.core.application.port.inbound.DownloadInvoiceUseCase;
 import com.example.fatoura.core.application.port.inbound.GetInvoiceUseCase;
 import com.example.fatoura.core.application.port.inbound.GetInvoicesUseCase;
@@ -14,13 +15,16 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -33,6 +37,7 @@ public class InvoiceController {
   private final GetInvoicesUseCase getInvoicesUseCase;
   private final GetInvoiceUseCase getInvoiceUseCase;
   private final DownloadInvoiceUseCase downloadInvoiceUseCase;
+  private final DeleteInvoiceUseCase deleteInvoiceUseCase;
 
   @PostMapping(
       value = "/upload",
@@ -86,5 +91,14 @@ public class InvoiceController {
         .contentType(MediaType.parseMediaType(invoice.getMimeType()))
         .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + invoice.getFilename() + "\"")
         .body(resource);
+  }
+
+  @DeleteMapping("/{id}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void delete(
+      User user,
+      @PathVariable UUID id
+  ) {
+    deleteInvoiceUseCase.delete(user, id);
   }
 }

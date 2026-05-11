@@ -1,5 +1,6 @@
 package com.example.fatoura.core.application.service;
 
+import com.example.fatoura.core.application.port.inbound.DeleteInvoiceUseCase;
 import com.example.fatoura.core.application.port.inbound.DownloadInvoiceUseCase;
 import com.example.fatoura.core.application.port.inbound.GetInvoiceUseCase;
 import com.example.fatoura.core.application.port.inbound.GetInvoicesUseCase;
@@ -21,12 +22,33 @@ import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;
 
 @RequiredArgsConstructor
-public class InvoiceService implements UploadInvoiceUseCase, GetInvoicesUseCase, GetInvoiceUseCase, DownloadInvoiceUseCase {
+public class InvoiceService implements UploadInvoiceUseCase, GetInvoicesUseCase, GetInvoiceUseCase, DownloadInvoiceUseCase, DeleteInvoiceUseCase {
 
   private final InvoiceRepository invoiceRepository;
   private final OrganizationRepository organizationRepository;
   private final MembershipRepository membershipRepository;
   private final FileStoragePort storagePort;
+
+  @Override
+  public void delete(User user, UUID invoiceId) {
+    Invoice invoice = invoiceRepository.findById(invoiceId)
+        .orElseThrow(() -> new RuntimeException("Invoice not found"));
+
+    boolean hasAccess = membershipRepository
+        .existsByUserAndOrganization(user, invoice.getOrganization());
+
+    if (!hasAccess) {
+      throw new RuntimeException("Forbidden");
+    }
+
+    try {
+      storagePort.delete(invoice.getStoragePath());
+    } catch (IOException e) {
+      throw new RuntimeException("Could not delete file", e);
+    }
+
+    invoiceRepository.deleteById(invoiceId);
+  }
 
   @Override
   public Resource download(User user, UUID invoiceId) {

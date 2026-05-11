@@ -37,4 +37,9 @@ public class InvoicePersistenceAdapter implements InvoiceRepository {
     return jpaInvoiceRepository.findById(invoiceId)
         .map(InvoicePersistenceMapper::toDomain);
   }
+
+  @Override
+  public void deleteById(UUID invoiceId) {
+    jpaInvoiceRepository.deleteById(invoiceId);
+  }
 }

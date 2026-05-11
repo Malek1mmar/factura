@@ -43,4 +43,10 @@ public class LocalFileStorageAdapter implements FileStoragePort {
       throw new RuntimeException("Could not read file: " + path, e);
     }
   }
+
+  @Override
+  public void delete(String path) throws IOException {
+    Path file = Paths.get(path);
+    Files.deleteIfExists(file);
+  }
 }

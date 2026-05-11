@@ -9,4 +9,5 @@ public interface InvoiceRepository {
   Invoice save(Invoice invoice);
   List<Invoice> findByOrganizationId(UUID organizationId);
   Optional<Invoice> findById(UUID invoiceId);
+  void deleteById(UUID invoiceId);
 }
