@@ -1,5 +1,6 @@
 package com.example.fatoura.core.application.service;
 
+import com.example.fatoura.core.application.port.inbound.DownloadInvoiceUseCase;
 import com.example.fatoura.core.application.port.inbound.GetInvoiceUseCase;
 import com.example.fatoura.core.application.port.inbound.GetInvoicesUseCase;
 import com.example.fatoura.core.application.port.inbound.UploadInvoiceUseCase;
@@ -16,15 +17,31 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;
 
 @RequiredArgsConstructor
-public class InvoiceService implements UploadInvoiceUseCase, GetInvoicesUseCase, GetInvoiceUseCase {
+public class InvoiceService implements UploadInvoiceUseCase, GetInvoicesUseCase, GetInvoiceUseCase, DownloadInvoiceUseCase {
 
   private final InvoiceRepository invoiceRepository;
   private final OrganizationRepository organizationRepository;
   private final MembershipRepository membershipRepository;
   private final FileStoragePort storagePort;
+
+  @Override
+  public Resource download(User user, UUID invoiceId) {
+    Invoice invoice = invoiceRepository.findById(invoiceId)
+        .orElseThrow(() -> new RuntimeException("Invoice not found"));
+
+    boolean hasAccess = membershipRepository
+        .existsByUserAndOrganization(user, invoice.getOrganization());
+
+    if (!hasAccess) {
+      throw new RuntimeException("Forbidden");
+    }
+
+    return storagePort.loadAsResource(invoice.getStoragePath());
+  }
 
   @Override
   public Invoice upload(

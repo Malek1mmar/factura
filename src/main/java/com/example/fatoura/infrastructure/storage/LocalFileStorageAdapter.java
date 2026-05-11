@@ -6,6 +6,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -25,5 +27,20 @@ public class LocalFileStorageAdapter implements FileStoragePort {
     Files.write(path, content);
 
     return path.toString();
+  }
+
+  @Override
+  public Resource loadAsResource(String path) {
+    try {
+      Path file = Paths.get(path);
+      Resource resource = new UrlResource(file.toUri());
+      if (resource.exists() || resource.isReadable()) {
+        return resource;
+      } else {
+        throw new RuntimeException("Could not read file: " + path);
+      }
+    } catch (Exception e) {
+      throw new RuntimeException("Could not read file: " + path, e);
+    }
   }
 }

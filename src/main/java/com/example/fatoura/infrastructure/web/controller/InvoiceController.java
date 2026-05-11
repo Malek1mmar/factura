@@ -1,5 +1,6 @@
 package com.example.fatoura.infrastructure.web.controller;
 
+import com.example.fatoura.core.application.port.inbound.DownloadInvoiceUseCase;
 import com.example.fatoura.core.application.port.inbound.GetInvoiceUseCase;
 import com.example.fatoura.core.application.port.inbound.GetInvoicesUseCase;
 import com.example.fatoura.core.application.port.inbound.UploadInvoiceUseCase;
@@ -11,7 +12,10 @@ import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,6 +32,7 @@ public class InvoiceController {
   private final UploadInvoiceUseCase uploadInvoiceUseCase;
   private final GetInvoicesUseCase getInvoicesUseCase;
   private final GetInvoiceUseCase getInvoiceUseCase;
+  private final DownloadInvoiceUseCase downloadInvoiceUseCase;
 
   @PostMapping(
       value = "/upload",
@@ -67,5 +72,19 @@ public class InvoiceController {
     Invoice invoice = getInvoiceUseCase.getById(user, id);
 
     return InvoiceWebMapper.toResponse(invoice);
+  }
+
+  @GetMapping("/{id}/download")
+  public ResponseEntity<Resource> download(
+      User user,
+      @PathVariable UUID id
+  ) {
+    Invoice invoice = getInvoiceUseCase.getById(user, id);
+    Resource resource = downloadInvoiceUseCase.download(user, id);
+
+    return ResponseEntity.ok()
+        .contentType(MediaType.parseMediaType(invoice.getMimeType()))
+        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + invoice.getFilename() + "\"")
+        .body(resource);
   }
 }
