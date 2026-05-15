@@ -11,6 +11,7 @@ import com.example.fatoura.core.application.port.outbound.InvoiceOcrPort;
 import com.example.fatoura.core.application.port.outbound.InvoiceRepository;
 import com.example.fatoura.core.application.port.outbound.MembershipRepository;
 import com.example.fatoura.core.application.port.outbound.OrganizationRepository;
+import com.example.fatoura.core.domain.event.InvoiceUploadedEvent;
 import com.example.fatoura.core.domain.model.ExtractedInvoiceData;
 import com.example.fatoura.core.domain.model.Invoice;
 import com.example.fatoura.core.domain.model.InvoiceStatus;
@@ -21,6 +22,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -32,6 +34,7 @@ public class InvoiceService implements UploadInvoiceUseCase, GetInvoicesUseCase,
   private final MembershipRepository membershipRepository;
   private final FileStoragePort storagePort;
   private final InvoiceOcrPort ocrPort;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Override
   public void process(UUID invoiceId) {
@@ -41,7 +44,7 @@ public class InvoiceService implements UploadInvoiceUseCase, GetInvoicesUseCase,
     processInvoice(invoice);
   }
 
-  private Invoice processInvoice(Invoice invoice) {
+  private void processInvoice(Invoice invoice) {
     invoice.setStatus(InvoiceStatus.PROCESSING);
     invoiceRepository.save(invoice);
 
@@ -59,7 +62,7 @@ public class InvoiceService implements UploadInvoiceUseCase, GetInvoicesUseCase,
       invoice.setStatus(InvoiceStatus.FAILED);
     }
 
-    return invoiceRepository.save(invoice);
+    invoiceRepository.save(invoice);
   }
 
   @Override
@@ -135,7 +138,10 @@ public class InvoiceService implements UploadInvoiceUseCase, GetInvoicesUseCase,
         .build();
 
     Invoice savedInvoice = invoiceRepository.save(invoice);
-    return processInvoice(savedInvoice);
+
+    eventPublisher.publishEvent(new InvoiceUploadedEvent(savedInvoice.getId()));
+
+    return savedInvoice;
   }
 
   @Override

@@ -11,6 +11,11 @@ public class FakeInvoiceOcrAdapter implements InvoiceOcrPort {
 
   @Override
   public ExtractedInvoiceData process(String filePath) {
+    try {
+      Thread.sleep(2000);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+    }
     return ExtractedInvoiceData.builder()
         .supplierName("Carrefour")
         .invoiceNumber("FAKE-001")
