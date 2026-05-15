@@ -22,10 +22,11 @@ The project follows a strict Hexagonal (Clean) Architecture:
 ### 📦 Core Layer (`com.example.fatoura.core`)
 Independent of any framework or infrastructure.
 *   **Domain**: Business entities (`Invoice`, `User`, `Organization`, `Membership`, `InvoiceStatus`) and logic.
+*   **Events**: Domain events for internal communication (e.g., `InvoiceUploadedEvent`).
 *   **Application**:
-    *   **Inbound Ports**: Interfaces defining use cases (`CreateOrganizationUseCase`, `GetInvoicesUseCase`, `GetInvoiceUseCase`, `SyncUserUseCase`, `UploadInvoiceUseCase`).
-    *   **Outbound Ports**: Interfaces for external dependencies (`InvoiceRepository`, `UserRepository`, `OrganizationRepository`, `MembershipRepository`, `FileStoragePort`).
-    *   **Services**: Business logic implementations that coordinate between ports.
+    *   **Inbound Ports**: Interfaces defining use cases (`CreateOrganizationUseCase`, `GetInvoicesUseCase`, `GetInvoiceUseCase`, `SyncUserUseCase`, `UploadInvoiceUseCase`, `ProcessInvoiceUseCase`).
+    *   **Outbound Ports**: Interfaces for external dependencies (`InvoiceRepository`, `UserRepository`, `OrganizationRepository`, `MembershipRepository`, `FileStoragePort`, `InvoiceOcrPort`).
+    *   **Services**: Business logic implementations and Event Listeners that coordinate between ports.
 
 ### 🔌 Infrastructure Layer (`com.example.fatoura.infrastructure`)
 Contains technical implementations.
@@ -86,6 +87,13 @@ Managed within the scope of an Organization. Statuses: `UPLOADED`, `PROCESSED`, 
 *   **Secure Upload**: Upload invoice PDFs/images tied to an organization.
 *   **Access Control**: Strict membership checks to ensure users only access invoices for their organizations.
 *   **Local Storage**: Invoices are stored locally in the `uploads/` directory with unique UUID prefixes.
+*   **Async Processing**: Invoices are processed asynchronously after upload using Spring Application Events and `@Async`.
+
+## ⚙️ Async Workflow
+1.  **Upload**: `InvoiceService` saves the file and the `Invoice` entity with status `UPLOADED`.
+2.  **Event**: `InvoiceService` publishes an `InvoiceUploadedEvent`.
+3.  **Listener**: `InvoiceEventListener` catches the event and triggers the OCR processing in a separate thread.
+4.  **OCR**: The OCR adapter extracts data (simulated with a delay) and updates the invoice status to `PROCESSED`.
 
 ---
 
