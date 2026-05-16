@@ -50,6 +50,9 @@ public class InvoiceEntity {
   @ManyToOne(optional = false)
   private UserEntity uploadedBy;
 
+  @jakarta.persistence.Column(columnDefinition = "TEXT")
+  private String rawContent;
+
   private String supplierName;
   private String invoiceNumber;
   private BigDecimal totalAmount;

@@ -25,7 +25,7 @@ Independent of any framework or infrastructure.
 *   **Events**: Domain events for internal communication (e.g., `InvoiceUploadedEvent`).
 *   **Application**:
     *   **Inbound Ports**: Interfaces defining use cases (`CreateOrganizationUseCase`, `GetInvoicesUseCase`, `GetInvoiceUseCase`, `SyncUserUseCase`, `UploadInvoiceUseCase`, `ProcessInvoiceUseCase`).
-    *   **Outbound Ports**: Interfaces for external dependencies (`InvoiceRepository`, `UserRepository`, `OrganizationRepository`, `MembershipRepository`, `FileStoragePort`, `InvoiceOcrPort`).
+    *   **Outbound Ports**: Interfaces for external dependencies (`InvoiceRepository`, `UserRepository`, `OrganizationRepository`, `MembershipRepository`, `FileStoragePort`, `RawTextExtractorPort`).
     *   **Services**: Business logic implementations and Event Listeners that coordinate between ports.
 
 ### 🔌 Infrastructure Layer (`com.example.fatoura.infrastructure`)

@@ -24,6 +24,7 @@ public class Invoice {
   private Organization organization;
   private User uploadedBy;
 
+  private String rawContent;
   private String supplierName;
   private String invoiceNumber;
   private BigDecimal totalAmount;

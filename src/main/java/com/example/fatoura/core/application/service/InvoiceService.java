@@ -7,12 +7,10 @@ import com.example.fatoura.core.application.port.inbound.GetInvoicesUseCase;
 import com.example.fatoura.core.application.port.inbound.ProcessInvoiceUseCase;
 import com.example.fatoura.core.application.port.inbound.UploadInvoiceUseCase;
 import com.example.fatoura.core.application.port.outbound.FileStoragePort;
-import com.example.fatoura.core.application.port.outbound.InvoiceOcrPort;
 import com.example.fatoura.core.application.port.outbound.InvoiceRepository;
 import com.example.fatoura.core.application.port.outbound.MembershipRepository;
 import com.example.fatoura.core.application.port.outbound.OrganizationRepository;
 import com.example.fatoura.core.domain.event.InvoiceUploadedEvent;
-import com.example.fatoura.core.domain.model.ExtractedInvoiceData;
 import com.example.fatoura.core.domain.model.Invoice;
 import com.example.fatoura.core.domain.model.InvoiceStatus;
 import com.example.fatoura.core.domain.model.Organization;
@@ -33,7 +31,7 @@ public class InvoiceService implements UploadInvoiceUseCase, GetInvoicesUseCase,
   private final OrganizationRepository organizationRepository;
   private final MembershipRepository membershipRepository;
   private final FileStoragePort storagePort;
-  private final InvoiceOcrPort ocrPort;
+  private final DocumentTextExtractionService extractionService;
   private final ApplicationEventPublisher eventPublisher;
 
   @Override
@@ -49,13 +47,8 @@ public class InvoiceService implements UploadInvoiceUseCase, GetInvoicesUseCase,
     invoiceRepository.save(invoice);
 
     try {
-      ExtractedInvoiceData data = ocrPort.process(invoice.getStoragePath());
-
-      invoice.setSupplierName(data.getSupplierName());
-      invoice.setInvoiceNumber(data.getInvoiceNumber());
-      invoice.setTotalAmount(data.getTotalAmount());
-      invoice.setInvoiceDate(data.getInvoiceDate());
-      invoice.setCurrency(data.getCurrency());
+      String rawText = extractionService.extract(invoice.getStoragePath(), invoice.getMimeType());
+      invoice.setRawContent(rawText);
       invoice.setStatus(InvoiceStatus.PROCESSED);
 
     } catch (Exception e) {
