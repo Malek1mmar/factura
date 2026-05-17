@@ -1,6 +1,7 @@
 package com.example.fatoura.infrastructure.ocr;
 
 import com.example.fatoura.core.application.port.outbound.RawTextExtractorPort;
+import com.example.fatoura.infrastructure.exception.InfrastructureException;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
@@ -19,7 +20,7 @@ public class PdfTextExtractorAdapter
       PDFTextStripper stripper = new PDFTextStripper();
       return stripper.getText(document);
     } catch (IOException e) {
-      throw new RuntimeException("Failed to extract text from PDF: " + filePath, e);
+      throw new InfrastructureException("Failed to extract text from PDF: " + filePath, e);
     }
   }
 

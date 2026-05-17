@@ -4,6 +4,8 @@ import com.example.fatoura.core.application.port.inbound.CreateOrganizationUseCa
 import com.example.fatoura.core.application.port.inbound.GetOrganizationUseCase;
 import com.example.fatoura.core.application.port.outbound.MembershipRepository;
 import com.example.fatoura.core.application.port.outbound.OrganizationRepository;
+import com.example.fatoura.core.domain.exception.ForbiddenException;
+import com.example.fatoura.core.domain.exception.ResourceNotFoundException;
 import com.example.fatoura.core.domain.model.Membership;
 import com.example.fatoura.core.domain.model.Organization;
 import com.example.fatoura.core.domain.model.User;
@@ -48,14 +50,14 @@ public class OrganizationService implements CreateOrganizationUseCase, GetOrgani
   @Override
   public Organization getById(UUID id) {
     return organizationRepository.findById(id)
-        .orElseThrow(() -> new RuntimeException("Organization not found"));
+        .orElseThrow(() -> new ResourceNotFoundException("Organization not found with id: " + id));
   }
 
   @Override
   public void checkAccess(User user, Organization organization) {
     boolean allowed = membershipRepository.existsByUserAndOrganization(user, organization);
     if (!allowed) {
-      throw new RuntimeException("Forbidden");
+      throw new ForbiddenException("You do not have access to this organization");
     }
   }
 }

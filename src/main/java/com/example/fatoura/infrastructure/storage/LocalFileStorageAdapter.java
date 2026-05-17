@@ -1,6 +1,7 @@
 package com.example.fatoura.infrastructure.storage;
 
 import com.example.fatoura.core.application.port.outbound.FileStoragePort;
+import com.example.fatoura.infrastructure.exception.InfrastructureException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -37,10 +38,10 @@ public class LocalFileStorageAdapter implements FileStoragePort {
       if (resource.exists() || resource.isReadable()) {
         return resource;
       } else {
-        throw new RuntimeException("Could not read file: " + path);
+        throw new InfrastructureException("Could not read file: " + path);
       }
     } catch (Exception e) {
-      throw new RuntimeException("Could not read file: " + path, e);
+      throw new InfrastructureException("Could not read file: " + path, e);
     }
   }
 

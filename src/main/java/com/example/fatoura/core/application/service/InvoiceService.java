@@ -11,6 +11,8 @@ import com.example.fatoura.core.application.port.outbound.InvoiceRepository;
 import com.example.fatoura.core.application.port.outbound.MembershipRepository;
 import com.example.fatoura.core.application.port.outbound.OrganizationRepository;
 import com.example.fatoura.core.domain.event.InvoiceUploadedEvent;
+import com.example.fatoura.core.domain.exception.ForbiddenException;
+import com.example.fatoura.core.domain.exception.ResourceNotFoundException;
 import com.example.fatoura.core.domain.model.Invoice;
 import com.example.fatoura.core.domain.model.InvoiceStatus;
 import com.example.fatoura.core.domain.model.Organization;
@@ -37,7 +39,7 @@ public class InvoiceService implements UploadInvoiceUseCase, GetInvoicesUseCase,
   @Override
   public void process(UUID invoiceId) {
     Invoice invoice = invoiceRepository.findById(invoiceId)
-        .orElseThrow(() -> new RuntimeException("Invoice not found"));
+        .orElseThrow(() -> new ResourceNotFoundException("Invoice not found with id: " + invoiceId));
 
     processInvoice(invoice);
   }
@@ -62,13 +64,13 @@ public class InvoiceService implements UploadInvoiceUseCase, GetInvoicesUseCase,
   public void delete(User user, UUID invoiceId) {
 
       Invoice invoice = invoiceRepository.findById(invoiceId)
-          .orElseThrow(() -> new RuntimeException("Invoice not found"));
+          .orElseThrow(() -> new ResourceNotFoundException("Invoice not found with id: " + invoiceId));
 
       boolean hasAccess = membershipRepository
           .existsByUserAndOrganization(user, invoice.getOrganization());
 
       if (!hasAccess) {
-        throw new RuntimeException("Forbidden");
+        throw new ForbiddenException("You do not have access to this invoice");
       }
 
       try {
@@ -83,13 +85,13 @@ public class InvoiceService implements UploadInvoiceUseCase, GetInvoicesUseCase,
   @Override
   public Resource download(User user, UUID invoiceId) {
     Invoice invoice = invoiceRepository.findById(invoiceId)
-        .orElseThrow(() -> new RuntimeException("Invoice not found"));
+        .orElseThrow(() -> new ResourceNotFoundException("Invoice not found with id: " + invoiceId));
 
     boolean hasAccess = membershipRepository
         .existsByUserAndOrganization(user, invoice.getOrganization());
 
     if (!hasAccess) {
-      throw new RuntimeException("Forbidden");
+      throw new ForbiddenException("You do not have access to this invoice");
     }
 
     return storagePort.loadAsResource(invoice.getStoragePath());
@@ -104,13 +106,13 @@ public class InvoiceService implements UploadInvoiceUseCase, GetInvoicesUseCase,
 
     Organization organization = organizationRepository
         .findById(organizationId)
-        .orElseThrow(() -> new RuntimeException("Organization not found"));
+        .orElseThrow(() -> new ResourceNotFoundException("Organization not found with id: " + organizationId));
 
     boolean hasAccess = membershipRepository
         .existsByUserAndOrganization(user, organization);
 
     if (!hasAccess) {
-      throw new RuntimeException("Forbidden");
+      throw new ForbiddenException("You do not have access to this organization");
     }
 
     String path = storagePort.store(
@@ -141,13 +143,13 @@ public class InvoiceService implements UploadInvoiceUseCase, GetInvoicesUseCase,
   public List<Invoice> getByOrganization(User user, UUID organizationId) {
     Organization organization = organizationRepository
         .findById(organizationId)
-        .orElseThrow(() -> new RuntimeException("Organization not found"));
+        .orElseThrow(() -> new ResourceNotFoundException("Organization not found with id: " + organizationId));
 
     boolean hasAccess = membershipRepository
         .existsByUserAndOrganization(user, organization);
 
     if (!hasAccess) {
-      throw new RuntimeException("Forbidden");
+      throw new ForbiddenException("You do not have access to this organization");
     }
 
     return invoiceRepository.findByOrganizationId(organizationId);
@@ -156,13 +158,13 @@ public class InvoiceService implements UploadInvoiceUseCase, GetInvoicesUseCase,
   @Override
   public Invoice getById(User user, UUID invoiceId) {
     Invoice invoice = invoiceRepository.findById(invoiceId)
-        .orElseThrow(() -> new RuntimeException("Invoice not found"));
+        .orElseThrow(() -> new ResourceNotFoundException("Invoice not found with id: " + invoiceId));
 
     boolean hasAccess = membershipRepository
         .existsByUserAndOrganization(user, invoice.getOrganization());
 
     if (!hasAccess) {
-      throw new RuntimeException("Forbidden");
+      throw new ForbiddenException("You do not have access to this invoice");
     }
 
     return invoice;
