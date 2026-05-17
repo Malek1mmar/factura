@@ -16,5 +16,5 @@ public class Membership {
   private UUID id;
   private User user;
   private Organization organization;
-  private String role;
+  private Role role;
 }

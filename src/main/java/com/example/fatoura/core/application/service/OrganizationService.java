@@ -4,10 +4,12 @@ import com.example.fatoura.core.application.port.inbound.CreateOrganizationUseCa
 import com.example.fatoura.core.application.port.inbound.GetOrganizationUseCase;
 import com.example.fatoura.core.application.port.outbound.MembershipRepository;
 import com.example.fatoura.core.application.port.outbound.OrganizationRepository;
+import com.example.fatoura.core.domain.constant.MessageConstants;
 import com.example.fatoura.core.domain.exception.ForbiddenException;
 import com.example.fatoura.core.domain.exception.ResourceNotFoundException;
 import com.example.fatoura.core.domain.model.Membership;
 import com.example.fatoura.core.domain.model.Organization;
+import com.example.fatoura.core.domain.model.Role;
 import com.example.fatoura.core.domain.model.User;
 import java.util.List;
 import java.util.UUID;
@@ -31,7 +33,7 @@ public class OrganizationService implements CreateOrganizationUseCase, GetOrgani
     Membership membership = Membership.builder()
         .user(user)
         .organization(savedOrg)
-        .role("ADMIN")
+        .role(Role.ADMIN)
         .build();
 
     membershipRepository.save(membership);
@@ -50,14 +52,14 @@ public class OrganizationService implements CreateOrganizationUseCase, GetOrgani
   @Override
   public Organization getById(UUID id) {
     return organizationRepository.findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("Organization not found with id: " + id));
+        .orElseThrow(() -> new ResourceNotFoundException(String.format(MessageConstants.ORGANIZATION_NOT_FOUND, id)));
   }
 
   @Override
   public void checkAccess(User user, Organization organization) {
     boolean allowed = membershipRepository.existsByUserAndOrganization(user, organization);
     if (!allowed) {
-      throw new ForbiddenException("You do not have access to this organization");
+      throw new ForbiddenException(MessageConstants.ACCESS_DENIED_ORGANIZATION);
     }
   }
 }

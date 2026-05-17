@@ -1,6 +1,8 @@
 package com.example.fatoura.infrastructure.storage;
 
 import com.example.fatoura.core.application.port.outbound.FileStoragePort;
+import com.example.fatoura.core.domain.constant.MessageConstants;
+import com.example.fatoura.infrastructure.constant.InfrastructureConstants;
 import com.example.fatoura.infrastructure.exception.InfrastructureException;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -14,7 +16,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class LocalFileStorageAdapter implements FileStoragePort {
 
-  private static final String UPLOAD_DIR = "uploads/";
+  private static final String UPLOAD_DIR = InfrastructureConstants.DEFAULT_UPLOAD_DIR;
 
   @Override
   public String store(byte[] content, String originalFilename, String contentType) throws IOException {
@@ -38,10 +40,10 @@ public class LocalFileStorageAdapter implements FileStoragePort {
       if (resource.exists() || resource.isReadable()) {
         return resource;
       } else {
-        throw new InfrastructureException("Could not read file: " + path);
+        throw new InfrastructureException(String.format(MessageConstants.FILE_READ_ERROR, path));
       }
     } catch (Exception e) {
-      throw new InfrastructureException("Could not read file: " + path, e);
+      throw new InfrastructureException(String.format(MessageConstants.FILE_READ_ERROR, path), e);
     }
   }
 

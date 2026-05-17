@@ -10,6 +10,7 @@ import com.example.fatoura.core.application.port.outbound.FileStoragePort;
 import com.example.fatoura.core.application.port.outbound.InvoiceRepository;
 import com.example.fatoura.core.application.port.outbound.MembershipRepository;
 import com.example.fatoura.core.application.port.outbound.OrganizationRepository;
+import com.example.fatoura.core.domain.constant.MessageConstants;
 import com.example.fatoura.core.domain.event.InvoiceUploadedEvent;
 import com.example.fatoura.core.domain.exception.ForbiddenException;
 import com.example.fatoura.core.domain.exception.ResourceNotFoundException;
@@ -40,7 +41,7 @@ public class InvoiceService implements UploadInvoiceUseCase, GetInvoicesUseCase,
   @Override
   public void process(UUID invoiceId) {
     Invoice invoice = invoiceRepository.findById(invoiceId)
-        .orElseThrow(() -> new ResourceNotFoundException("Invoice not found with id: " + invoiceId));
+        .orElseThrow(() -> new ResourceNotFoundException(String.format(MessageConstants.INVOICE_NOT_FOUND, invoiceId)));
 
     processInvoice(invoice);
   }
@@ -65,19 +66,19 @@ public class InvoiceService implements UploadInvoiceUseCase, GetInvoicesUseCase,
   public void delete(User user, UUID invoiceId) {
 
       Invoice invoice = invoiceRepository.findById(invoiceId)
-          .orElseThrow(() -> new ResourceNotFoundException("Invoice not found with id: " + invoiceId));
+          .orElseThrow(() -> new ResourceNotFoundException(String.format(MessageConstants.INVOICE_NOT_FOUND, invoiceId)));
 
       boolean hasAccess = membershipRepository
           .existsByUserAndOrganization(user, invoice.getOrganization());
 
       if (!hasAccess) {
-        throw new ForbiddenException("You do not have access to this invoice");
+        throw new ForbiddenException(MessageConstants.ACCESS_DENIED_INVOICE);
       }
 
       try {
         storagePort.delete(invoice.getStoragePath());
       } catch (IOException e) {
-        throw new InfrastructureException("Could not delete file", e);
+        throw new InfrastructureException(MessageConstants.FILE_DELETE_ERROR, e);
       }
 
       invoiceRepository.deleteById(invoiceId);
@@ -86,13 +87,13 @@ public class InvoiceService implements UploadInvoiceUseCase, GetInvoicesUseCase,
   @Override
   public Resource download(User user, UUID invoiceId) {
     Invoice invoice = invoiceRepository.findById(invoiceId)
-        .orElseThrow(() -> new ResourceNotFoundException("Invoice not found with id: " + invoiceId));
+        .orElseThrow(() -> new ResourceNotFoundException(String.format(MessageConstants.INVOICE_NOT_FOUND, invoiceId)));
 
     boolean hasAccess = membershipRepository
         .existsByUserAndOrganization(user, invoice.getOrganization());
 
     if (!hasAccess) {
-      throw new ForbiddenException("You do not have access to this invoice");
+      throw new ForbiddenException(MessageConstants.ACCESS_DENIED_INVOICE);
     }
 
     return storagePort.loadAsResource(invoice.getStoragePath());
@@ -107,13 +108,13 @@ public class InvoiceService implements UploadInvoiceUseCase, GetInvoicesUseCase,
 
     Organization organization = organizationRepository
         .findById(organizationId)
-        .orElseThrow(() -> new ResourceNotFoundException("Organization not found with id: " + organizationId));
+        .orElseThrow(() -> new ResourceNotFoundException(String.format(MessageConstants.ORGANIZATION_NOT_FOUND, organizationId)));
 
     boolean hasAccess = membershipRepository
         .existsByUserAndOrganization(user, organization);
 
     if (!hasAccess) {
-      throw new ForbiddenException("You do not have access to this organization");
+      throw new ForbiddenException(MessageConstants.ACCESS_DENIED_ORGANIZATION);
     }
 
     String path = storagePort.store(
@@ -144,13 +145,13 @@ public class InvoiceService implements UploadInvoiceUseCase, GetInvoicesUseCase,
   public List<Invoice> getByOrganization(User user, UUID organizationId) {
     Organization organization = organizationRepository
         .findById(organizationId)
-        .orElseThrow(() -> new ResourceNotFoundException("Organization not found with id: " + organizationId));
+        .orElseThrow(() -> new ResourceNotFoundException(String.format(MessageConstants.ORGANIZATION_NOT_FOUND, organizationId)));
 
     boolean hasAccess = membershipRepository
         .existsByUserAndOrganization(user, organization);
 
     if (!hasAccess) {
-      throw new ForbiddenException("You do not have access to this organization");
+      throw new ForbiddenException(MessageConstants.ACCESS_DENIED_ORGANIZATION);
     }
 
     return invoiceRepository.findByOrganizationId(organizationId);
@@ -159,13 +160,13 @@ public class InvoiceService implements UploadInvoiceUseCase, GetInvoicesUseCase,
   @Override
   public Invoice getById(User user, UUID invoiceId) {
     Invoice invoice = invoiceRepository.findById(invoiceId)
-        .orElseThrow(() -> new ResourceNotFoundException("Invoice not found with id: " + invoiceId));
+        .orElseThrow(() -> new ResourceNotFoundException(String.format(MessageConstants.INVOICE_NOT_FOUND, invoiceId)));
 
     boolean hasAccess = membershipRepository
         .existsByUserAndOrganization(user, invoice.getOrganization());
 
     if (!hasAccess) {
-      throw new ForbiddenException("You do not have access to this invoice");
+      throw new ForbiddenException(MessageConstants.ACCESS_DENIED_INVOICE);
     }
 
     return invoice;
