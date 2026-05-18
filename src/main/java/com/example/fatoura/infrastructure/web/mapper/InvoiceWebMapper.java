@@ -2,7 +2,10 @@ package com.example.fatoura.infrastructure.web.mapper;
 
 import com.example.fatoura.core.domain.model.Invoice;
 import com.example.fatoura.infrastructure.web.dto.InvoiceResponse;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class InvoiceWebMapper {
 
   public static InvoiceResponse toResponse(Invoice invoice) {

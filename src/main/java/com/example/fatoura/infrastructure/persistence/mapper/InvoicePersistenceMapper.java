@@ -2,7 +2,10 @@ package com.example.fatoura.infrastructure.persistence.mapper;
 
 import com.example.fatoura.core.domain.model.Invoice;
 import com.example.fatoura.infrastructure.persistence.entity.InvoiceEntity;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class InvoicePersistenceMapper {
 
   public static Invoice toDomain(InvoiceEntity entity) {

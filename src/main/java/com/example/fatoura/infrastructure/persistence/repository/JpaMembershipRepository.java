@@ -10,4 +10,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface JpaMembershipRepository extends JpaRepository<MembershipEntity, UUID> {
   List<MembershipEntity> findByUser(UserEntity user);
   boolean existsByUserAndOrganization(UserEntity user, OrganizationEntity organization);
+  boolean existsByUserIdAndOrganizationId(UUID userId, UUID organizationId);
 }

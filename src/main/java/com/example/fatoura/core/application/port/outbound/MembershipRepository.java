@@ -4,9 +4,11 @@ import com.example.fatoura.core.domain.model.Membership;
 import com.example.fatoura.core.domain.model.Organization;
 import com.example.fatoura.core.domain.model.User;
 import java.util.List;
+import java.util.UUID;
 
 public interface MembershipRepository {
   Membership save(Membership membership);
   List<Membership> findByUser(User user);
   boolean existsByUserAndOrganization(User user, Organization organization);
+  boolean existsByUserAndOrganizationId(User user, UUID organizationId);
 }

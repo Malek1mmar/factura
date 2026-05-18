@@ -6,6 +6,7 @@ import com.example.fatoura.core.application.port.inbound.GetInvoiceUseCase;
 import com.example.fatoura.core.application.port.inbound.GetInvoicesUseCase;
 import com.example.fatoura.core.application.port.inbound.UploadInvoiceUseCase;
 import com.example.fatoura.core.domain.model.Invoice;
+import com.example.fatoura.core.domain.model.InvoiceSearchCriteria;
 import com.example.fatoura.core.domain.model.User;
 import com.example.fatoura.infrastructure.web.dto.InvoiceResponse;
 import com.example.fatoura.infrastructure.web.mapper.InvoiceWebMapper;
@@ -14,6 +15,8 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -58,6 +61,16 @@ public class InvoiceController {
   }
 
   @GetMapping
+  public Page<InvoiceResponse> search(
+      User user,
+      InvoiceSearchCriteria criteria,
+      Pageable pageable
+  ) {
+    return getInvoicesUseCase.search(user, criteria, pageable)
+        .map(InvoiceWebMapper::toResponse);
+  }
+
+  @GetMapping("/old")
   public List<InvoiceResponse> getAll(
       User user,
       @RequestParam UUID organizationId

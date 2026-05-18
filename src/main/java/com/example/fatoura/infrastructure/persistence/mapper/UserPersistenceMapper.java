@@ -2,7 +2,10 @@ package com.example.fatoura.infrastructure.persistence.mapper;
 
 import com.example.fatoura.core.domain.model.User;
 import com.example.fatoura.infrastructure.persistence.entity.UserEntity;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class UserPersistenceMapper {
 
   public static User toDomain(UserEntity entity) {

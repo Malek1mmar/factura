@@ -43,4 +43,9 @@ public class MembershipPersistenceAdapter implements MembershipRepository {
     OrganizationEntity organizationEntity = OrganizationPersistenceMapper.toEntity(organization);
     return jpaMembershipRepository.existsByUserAndOrganization(userEntity, organizationEntity);
   }
+
+  @Override
+  public boolean existsByUserAndOrganizationId(User user, UUID organizationId) {
+    return jpaMembershipRepository.existsByUserIdAndOrganizationId(user.getId(), organizationId);
+  }
 }

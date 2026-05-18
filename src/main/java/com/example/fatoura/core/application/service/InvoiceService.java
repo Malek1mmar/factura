@@ -18,6 +18,7 @@ import com.example.fatoura.infrastructure.exception.InfrastructureException;
 import com.example.fatoura.core.application.port.outbound.InvoiceParsingPort;
 import com.example.fatoura.core.domain.model.ExtractedInvoiceData;
 import com.example.fatoura.core.domain.model.Invoice;
+import com.example.fatoura.core.domain.model.InvoiceSearchCriteria;
 import com.example.fatoura.core.domain.model.InvoiceStatus;
 import com.example.fatoura.core.domain.model.Organization;
 import com.example.fatoura.core.domain.model.User;
@@ -28,6 +29,8 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
 @RequiredArgsConstructor
@@ -40,6 +43,22 @@ public class InvoiceService implements UploadInvoiceUseCase, GetInvoicesUseCase,
   private final DocumentTextExtractionService extractionService;
   private final InvoiceParsingPort parsingPort;
   private final ApplicationEventPublisher eventPublisher;
+
+  @Override
+  public Page<Invoice> search(User user, InvoiceSearchCriteria criteria, Pageable pageable) {
+    if (criteria.getOrganizationId() == null) {
+      throw new IllegalArgumentException("Organization ID is required");
+    }
+
+    boolean hasAccess = membershipRepository
+        .existsByUserAndOrganizationId(user, criteria.getOrganizationId());
+
+    if (!hasAccess) {
+      throw new ForbiddenException(MessageConstants.ACCESS_DENIED_ORGANIZATION);
+    }
+
+    return invoiceRepository.search(criteria, pageable);
+  }
 
   @Override
   public void process(UUID invoiceId) {

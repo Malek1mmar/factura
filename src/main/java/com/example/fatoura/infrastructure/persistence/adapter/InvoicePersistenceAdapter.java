@@ -2,14 +2,18 @@ package com.example.fatoura.infrastructure.persistence.adapter;
 
 import com.example.fatoura.core.application.port.outbound.InvoiceRepository;
 import com.example.fatoura.core.domain.model.Invoice;
+import com.example.fatoura.core.domain.model.InvoiceSearchCriteria;
 import com.example.fatoura.infrastructure.persistence.entity.InvoiceEntity;
 import com.example.fatoura.infrastructure.persistence.mapper.InvoicePersistenceMapper;
 import com.example.fatoura.infrastructure.persistence.repository.JpaInvoiceRepository;
+import com.example.fatoura.infrastructure.persistence.specification.InvoiceSpecification;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -17,6 +21,12 @@ import org.springframework.stereotype.Component;
 public class InvoicePersistenceAdapter implements InvoiceRepository {
 
   private final JpaInvoiceRepository jpaInvoiceRepository;
+
+  @Override
+  public Page<Invoice> search(InvoiceSearchCriteria criteria, Pageable pageable) {
+    return jpaInvoiceRepository.findAll(InvoiceSpecification.withCriteria(criteria), pageable)
+        .map(InvoicePersistenceMapper::toDomain);
+  }
 
   @Override
   public Invoice save(Invoice invoice) {
