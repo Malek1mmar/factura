@@ -1,8 +1,12 @@
 package com.example.fatoura.infrastructure.persistence.mapper;
 
 import com.example.fatoura.core.domain.model.Membership;
+import com.example.fatoura.core.domain.model.Role;
 import com.example.fatoura.infrastructure.persistence.entity.MembershipEntity;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class MembershipPersistenceMapper {
 
   public static Membership toDomain(MembershipEntity entity) {
@@ -11,7 +15,7 @@ public class MembershipPersistenceMapper {
         .id(entity.getId())
         .user(UserPersistenceMapper.toDomain(entity.getUser()))
         .organization(OrganizationPersistenceMapper.toDomain(entity.getOrganization()))
-        .role(entity.getRole())
+        .role(Role.valueOf(entity.getRole()))
         .build();
   }
 
@@ -21,7 +25,7 @@ public class MembershipPersistenceMapper {
         .id(domain.getId())
         .user(UserPersistenceMapper.toEntity(domain.getUser()))
         .organization(OrganizationPersistenceMapper.toEntity(domain.getOrganization()))
-        .role(domain.getRole())
+        .role(String.valueOf(domain.getRole()))
         .build();
   }
 }
