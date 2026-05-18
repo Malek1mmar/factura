@@ -1,6 +1,7 @@
 package com.example.fatoura.config;
 
 import com.example.fatoura.core.application.port.outbound.FileStoragePort;
+import com.example.fatoura.core.application.port.outbound.InvoiceParsingPort;
 import com.example.fatoura.core.application.port.outbound.InvoiceRepository;
 import com.example.fatoura.core.application.port.outbound.MembershipRepository;
 import com.example.fatoura.core.application.port.outbound.OrganizationRepository;
@@ -36,6 +37,7 @@ public class BeanConfig {
       MembershipRepository membershipRepository,
       FileStoragePort fileStoragePort,
       DocumentTextExtractionService extractionService,
+      InvoiceParsingPort parsingPort,
       ApplicationEventPublisher eventPublisher
   ) {
     return new InvoiceService(
@@ -44,6 +46,7 @@ public class BeanConfig {
         membershipRepository,
         fileStoragePort,
         extractionService,
+        parsingPort,
         eventPublisher
     );
   }

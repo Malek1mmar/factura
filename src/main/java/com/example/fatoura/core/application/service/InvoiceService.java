@@ -15,6 +15,8 @@ import com.example.fatoura.core.domain.event.InvoiceUploadedEvent;
 import com.example.fatoura.core.domain.exception.ForbiddenException;
 import com.example.fatoura.core.domain.exception.ResourceNotFoundException;
 import com.example.fatoura.infrastructure.exception.InfrastructureException;
+import com.example.fatoura.core.application.port.outbound.InvoiceParsingPort;
+import com.example.fatoura.core.domain.model.ExtractedInvoiceData;
 import com.example.fatoura.core.domain.model.Invoice;
 import com.example.fatoura.core.domain.model.InvoiceStatus;
 import com.example.fatoura.core.domain.model.Organization;
@@ -36,6 +38,7 @@ public class InvoiceService implements UploadInvoiceUseCase, GetInvoicesUseCase,
   private final MembershipRepository membershipRepository;
   private final FileStoragePort storagePort;
   private final DocumentTextExtractionService extractionService;
+  private final InvoiceParsingPort parsingPort;
   private final ApplicationEventPublisher eventPublisher;
 
   @Override
@@ -53,6 +56,14 @@ public class InvoiceService implements UploadInvoiceUseCase, GetInvoicesUseCase,
     try {
       String rawText = extractionService.extract(invoice.getStoragePath(), invoice.getMimeType());
       invoice.setRawContent(rawText);
+
+      ExtractedInvoiceData data = parsingPort.parse(rawText);
+      invoice.setSupplierName(data.getSupplierName());
+      invoice.setInvoiceNumber(data.getInvoiceNumber());
+      invoice.setTotalAmount(data.getTotalAmount());
+      invoice.setInvoiceDate(data.getInvoiceDate());
+      invoice.setCurrency(data.getCurrency());
+
       invoice.setStatus(InvoiceStatus.PROCESSED);
 
     } catch (Exception e) {
