@@ -5,6 +5,8 @@ import com.example.fatoura.core.application.port.inbound.DownloadInvoiceUseCase;
 import com.example.fatoura.core.application.port.inbound.GetInvoiceUseCase;
 import com.example.fatoura.core.application.port.inbound.GetInvoicesUseCase;
 import com.example.fatoura.core.application.port.inbound.ProcessInvoiceUseCase;
+import com.example.fatoura.core.application.port.inbound.ReviewInvoiceUseCase;
+import com.example.fatoura.core.application.port.inbound.UpdateInvoiceUseCase;
 import com.example.fatoura.core.application.port.inbound.UploadInvoiceUseCase;
 import com.example.fatoura.core.application.port.outbound.FileStoragePort;
 import com.example.fatoura.core.application.port.outbound.InvoiceRepository;
@@ -34,7 +36,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
 @RequiredArgsConstructor
-public class InvoiceService implements UploadInvoiceUseCase, GetInvoicesUseCase, GetInvoiceUseCase, DownloadInvoiceUseCase, DeleteInvoiceUseCase, ProcessInvoiceUseCase {
+public class InvoiceService implements UploadInvoiceUseCase, GetInvoicesUseCase, GetInvoiceUseCase, DownloadInvoiceUseCase, DeleteInvoiceUseCase, ProcessInvoiceUseCase, ReviewInvoiceUseCase, UpdateInvoiceUseCase {
 
   private final InvoiceRepository invoiceRepository;
   private final OrganizationRepository organizationRepository;
@@ -43,6 +45,51 @@ public class InvoiceService implements UploadInvoiceUseCase, GetInvoicesUseCase,
   private final DocumentTextExtractionService extractionService;
   private final InvoiceParsingPort parsingPort;
   private final ApplicationEventPublisher eventPublisher;
+
+  @Override
+  public void approve(User user, UUID invoiceId) {
+    Invoice invoice = getInvoiceWithAccessCheck(user, invoiceId);
+    invoice.setStatus(InvoiceStatus.APPROVED);
+    invoiceRepository.save(invoice);
+  }
+
+  @Override
+  public void reject(User user, UUID invoiceId) {
+    Invoice invoice = getInvoiceWithAccessCheck(user, invoiceId);
+    invoice.setStatus(InvoiceStatus.REJECTED);
+    invoiceRepository.save(invoice);
+  }
+
+  @Override
+  public Invoice update(User user, UUID invoiceId, UpdateCommand command) {
+    Invoice invoice = getInvoiceWithAccessCheck(user, invoiceId);
+
+    if (command.getSupplierName() != null) invoice.setSupplierName(command.getSupplierName());
+    if (command.getInvoiceNumber() != null) invoice.setInvoiceNumber(command.getInvoiceNumber());
+    if (command.getTotalAmount() != null) invoice.setTotalAmount(command.getTotalAmount());
+    if (command.getInvoiceDate() != null) invoice.setInvoiceDate(command.getInvoiceDate());
+    if (command.getCurrency() != null) invoice.setCurrency(command.getCurrency());
+
+    if (invoice.getStatus() == InvoiceStatus.REVIEW_REQUIRED) {
+        invoice.setStatus(InvoiceStatus.PROCESSED);
+    }
+
+    return invoiceRepository.save(invoice);
+  }
+
+  private Invoice getInvoiceWithAccessCheck(User user, UUID invoiceId) {
+    Invoice invoice = invoiceRepository.findById(invoiceId)
+        .orElseThrow(() -> new ResourceNotFoundException(String.format(MessageConstants.INVOICE_NOT_FOUND, invoiceId)));
+
+    boolean hasAccess = membershipRepository
+        .existsByUserAndOrganization(user, invoice.getOrganization());
+
+    if (!hasAccess) {
+      throw new ForbiddenException(MessageConstants.ACCESS_DENIED_INVOICE);
+    }
+
+    return invoice;
+  }
 
   @Override
   public Page<Invoice> search(User user, InvoiceSearchCriteria criteria, Pageable pageable) {
@@ -83,13 +130,24 @@ public class InvoiceService implements UploadInvoiceUseCase, GetInvoicesUseCase,
       invoice.setInvoiceDate(data.getInvoiceDate());
       invoice.setCurrency(data.getCurrency());
 
-      invoice.setStatus(InvoiceStatus.PROCESSED);
+      if (isReviewRequired(invoice)) {
+        invoice.setStatus(InvoiceStatus.REVIEW_REQUIRED);
+      } else {
+        invoice.setStatus(InvoiceStatus.PROCESSED);
+      }
 
     } catch (Exception e) {
       invoice.setStatus(InvoiceStatus.FAILED);
     }
 
     invoiceRepository.save(invoice);
+  }
+
+  private boolean isReviewRequired(Invoice invoice) {
+    return invoice.getSupplierName() == null ||
+        invoice.getTotalAmount() == null ||
+        invoice.getRawContent() == null ||
+        invoice.getRawContent().isBlank();
   }
 
   @Override
