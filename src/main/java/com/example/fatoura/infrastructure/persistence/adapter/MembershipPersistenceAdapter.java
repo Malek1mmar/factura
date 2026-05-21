@@ -12,6 +12,7 @@ import com.example.fatoura.infrastructure.persistence.mapper.OrganizationPersist
 import com.example.fatoura.infrastructure.persistence.mapper.UserPersistenceMapper;
 import com.example.fatoura.infrastructure.persistence.repository.JpaMembershipRepository;
 import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

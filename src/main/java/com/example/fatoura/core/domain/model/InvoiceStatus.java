@@ -4,5 +4,9 @@ public enum InvoiceStatus {
   UPLOADED,
   PROCESSING,
   PROCESSED,
-  FAILED
+  REVIEW_REQUIRED,
+  APPROVED,
+  REJECTED,
+  FAILED,
+  DUPLICATE
 }
